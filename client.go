@@ -123,6 +123,12 @@ func (c *client) readPump(conn *websocket.Conn) {
 						fmt.Printf("%s\n", response.Info)
 
 					case pb.ProjectOperation_LIST:
+
+					case pb.ProjectOperation_LIST_CREDENTIALS:
+						fmt.Printf("%s\n", response.Info)
+						for _, c := range projResponse.Credentials {
+							fmt.Printf("%s (Id = %d)\n", c.Key, c.Id)
+						}
 					}
 
 				} else if credResponse != nil {

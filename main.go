@@ -48,6 +48,15 @@ func repl(cli Client) {
 			case "list":
 				o.Command = pb.ProjectOperation_LIST
 
+			case "list-credentials":
+				o.Command = pb.ProjectOperation_LIST_CREDENTIALS
+				pid, err := strconv.Atoi(tokens[2])
+				if err != nil {
+					logError(err, "Could not convert project id to int")
+					continue
+				}
+				o.ProjectId = int32(pid)
+
 			case "create":
 				o.Command = pb.ProjectOperation_CREATE
 				o.Name = tokens[2]
