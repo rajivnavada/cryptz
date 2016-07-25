@@ -129,6 +129,9 @@ func (c *client) readPump(conn *websocket.Conn) {
 						for _, c := range projResponse.Credentials {
 							fmt.Printf("%s (Id = %d)\n", c.Key, c.Id)
 						}
+
+					case pb.ProjectOperation_ADD_MEMBER:
+						fmt.Printf("%s\n", response.Info)
 					}
 
 				} else if credResponse != nil {

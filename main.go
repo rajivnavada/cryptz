@@ -63,12 +63,23 @@ func repl(cli Client) {
 				o.Environment = tokens[3]
 
 			case "delete":
+				o.Command = pb.ProjectOperation_DELETE
 				pid, err := strconv.Atoi(tokens[2])
 				if err != nil {
 					logError(err, "Could not convert project id to int")
 					continue
 				}
 				o.ProjectId = int32(pid)
+
+			case "add-member":
+				o.Command = pb.ProjectOperation_ADD_MEMBER
+				pid, err := strconv.Atoi(tokens[2])
+				if err != nil {
+					logError(err, "Could not convert project id to int")
+					continue
+				}
+				o.ProjectId = int32(pid)
+				o.MemberEmail = tokens[3]
 			}
 			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
 
