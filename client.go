@@ -21,7 +21,7 @@ const (
 func logError(err error, info string) {
 	println(info)
 	if err != nil {
-		println(err)
+		println(err.Error())
 	}
 	println("")
 }
@@ -104,11 +104,12 @@ func (c *client) readPump(conn *websocket.Conn) {
 			// Decrypt relevant parts
 			switch response.Status {
 			case pb.Response_ERROR:
-				logError(fmt.Errorf(response.Error), "Error when creating project")
+				logError(fmt.Errorf(response.Error), "Server responded with an error")
 
 			case pb.Response_SUCCESS:
 				projResponse := response.GetProjectOpResponse()
 				credResponse := response.GetCredentialOpResponse()
+
 				if projResponse != nil {
 
 					switch projResponse.Command {
@@ -125,6 +126,23 @@ func (c *client) readPump(conn *websocket.Conn) {
 					}
 
 				} else if credResponse != nil {
+
+					switch credResponse.Command {
+					case pb.CredentialOperation_GET:
+						cred := credResponse.GetCredential()
+						if cred == nil || cred.Cipher == "" {
+							logError(nil, "Server returned an empty response for credential request.")
+						} else {
+							if value, err := gpgme.DecryptMessage(credResponse.Credential.Cipher); err != nil {
+								logError(err, "Could not decrypt credential cipher")
+							} else {
+								fmt.Printf("%s\n", value)
+							}
+						}
+
+					case pb.CredentialOperation_SET:
+						fmt.Printf("%s\n", response.Info)
+					}
 
 				}
 			}
