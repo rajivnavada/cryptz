@@ -10,6 +10,7 @@ import (
 	"github.com/rajivnavada/gpgme"
 	"net/http"
 	"os"
+	"sync"
 	"time"
 )
 
@@ -26,7 +27,7 @@ func logError(err error, info string) {
 }
 
 type Client interface {
-	Send(op *pb.Operation) error
+	Send(op *pb.Operation) (<-chan bool, error)
 	Run()
 	Close()
 }
@@ -37,6 +38,35 @@ type client struct {
 	CertPool  *x509.CertPool
 	WriteChan chan []byte
 	quitChan  chan bool
+}
+
+var (
+	requestIdLock       = &sync.Mutex{}
+	requestId     int32 = 0
+	openRequests        = make(map[int32]chan<- bool)
+)
+
+func openRequest() (int32, chan bool) {
+	requestIdLock.Lock()
+	defer requestIdLock.Unlock()
+
+	requestId++
+	ch := make(chan bool)
+	openRequests[requestId] = ch
+	return requestId, ch
+}
+
+func finalizeRequest(reqId int32) {
+	requestIdLock.Lock()
+	defer requestIdLock.Unlock()
+
+	if ch, ok := openRequests[requestId]; !ok {
+		return
+	} else {
+		ch <- true
+		close(ch)
+		delete(openRequests, requestId)
+	}
 }
 
 func (c *client) readPump(conn *websocket.Conn) {
@@ -70,16 +100,15 @@ func (c *client) readPump(conn *websocket.Conn) {
 				logError(err, "Could not unmarshal response from server")
 				continue
 			}
-			// Decrypt relevant parts
-			if response.Status == pb.Response_ERROR {
-				logError(fmt.Errorf(response.Error), "Error when creating project")
-				continue
-			}
-			if response.Status == pb.Response_SUCCESS {
 
+			// Decrypt relevant parts
+			switch response.Status {
+			case pb.Response_ERROR:
+				logError(fmt.Errorf(response.Error), "Error when creating project")
+
+			case pb.Response_SUCCESS:
 				projResponse := response.GetProjectOpResponse()
 				credResponse := response.GetCredentialOpResponse()
-
 				if projResponse != nil {
 
 					switch projResponse.Command {
@@ -98,9 +127,9 @@ func (c *client) readPump(conn *websocket.Conn) {
 				} else if credResponse != nil {
 
 				}
-
 			}
-			// Display results
+			reqId := response.OpId
+			finalizeRequest(reqId)
 
 		case websocket.CloseMessage:
 			return
@@ -129,13 +158,19 @@ func (c *client) writePump(conn *websocket.Conn) {
 	}
 }
 
-func (c *client) Send(op *pb.Operation) error {
+func (c *client) Send(op *pb.Operation) (<-chan bool, error) {
+	// Add the ID to the message
+	reqId, out := openRequest()
+	op.OpId = reqId
+
 	message, err := proto.Marshal(op)
 	if err != nil {
-		return err
+		finalizeRequest(reqId)
+		return nil, err
 	}
+
 	c.WriteChan <- message
-	return nil
+	return out, nil
 }
 
 func (c *client) Run() {

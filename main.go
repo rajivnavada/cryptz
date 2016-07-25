@@ -22,6 +22,7 @@ var (
 func repl(cli Client) {
 	bio := bufio.NewReader(os.Stdin)
 	for {
+		fmt.Print("> ")
 		// Scan the line from STDIN
 		line, err := bio.ReadString('\n')
 		if err != nil {
@@ -70,7 +71,11 @@ func repl(cli Client) {
 		}
 
 		// Write to client
-		cli.Send(op)
+		if waitCh, err := cli.Send(op); err != nil {
+			logError(err, "Error when trying to send operation")
+		} else {
+			<-waitCh
+		}
 	}
 }
 
