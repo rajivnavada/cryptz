@@ -9,6 +9,7 @@ import (
 	pb "github.com/rajivnavada/cryptz_pb"
 	"io"
 	"os"
+	"strconv"
 	"strings"
 )
 
@@ -46,24 +47,47 @@ func repl(cli Client) {
 			switch tokens[1] {
 			case "list":
 				o.Command = pb.ProjectOperation_LIST
-				break
 
 			case "create":
 				o.Command = pb.ProjectOperation_CREATE
 				o.Name = tokens[2]
 				o.Environment = tokens[3]
-				break
 
 			case "delete":
-				//o.ProjectId = a3
-				break
+				pid, err := strconv.Atoi(tokens[2])
+				if err != nil {
+					logError(err, "Could not convert project id to int")
+					continue
+				}
+				o.ProjectId = int32(pid)
 			}
 			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
-			break
 
 		case "credential":
-			//op = &pb.Operation{ProjectOrCredentialOp: &Operation_CredentialOp{CredentialOp: o}}
-			break
+			o := &pb.CredentialOperation{}
+			switch tokens[1] {
+			case "set":
+				o.Command = pb.CredentialOperation_SET
+				pid, err := strconv.Atoi(tokens[2])
+				if err != nil {
+					logError(err, "Could not convert project id to integer")
+					continue
+				}
+				o.Project = int32(pid)
+				o.Key = tokens[3]
+				o.Value = tokens[4]
+
+			case "get":
+				o.Command = pb.CredentialOperation_GET
+				pid, err := strconv.Atoi(tokens[2])
+				if err != nil {
+					logError(err, "Could not convert project id to integer")
+					continue
+				}
+				o.Project = int32(pid)
+				o.Key = tokens[3]
+			}
+			op.ProjectOrCredentialOp = &pb.Operation_CredentialOp{CredentialOp: o}
 
 		case "quit":
 			cli.Close()
