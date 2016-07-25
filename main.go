@@ -70,8 +70,13 @@ func repl(cli Client) {
 					continue
 				}
 				o.ProjectId = int32(pid)
+			}
+			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
 
-			case "add-member":
+		case "member":
+			o := &pb.ProjectOperation{}
+			switch tokens[1] {
+			case "add":
 				o.Command = pb.ProjectOperation_ADD_MEMBER
 				pid, err := strconv.Atoi(tokens[2])
 				if err != nil {
@@ -80,6 +85,15 @@ func repl(cli Client) {
 				}
 				o.ProjectId = int32(pid)
 				o.MemberEmail = tokens[3]
+
+			case "delete":
+				o.Command = pb.ProjectOperation_DELETE_MEMBER
+				mid, err := strconv.Atoi(tokens[2])
+				if err != nil {
+					logError(err, "Could not convert member id to int")
+					continue
+				}
+				o.MemberId = int32(mid)
 			}
 			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
 

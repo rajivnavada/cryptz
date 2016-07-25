@@ -132,6 +132,9 @@ func (c *client) readPump(conn *websocket.Conn) {
 
 					case pb.ProjectOperation_ADD_MEMBER:
 						fmt.Printf("%s\n", response.Info)
+
+					case pb.ProjectOperation_DELETE_MEMBER:
+						fmt.Printf("%s\n", response.Info)
 					}
 
 				} else if credResponse != nil {
