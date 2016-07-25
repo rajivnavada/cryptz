@@ -5,6 +5,10 @@ A client to help communicate with cryptz server. You will need to provide the fi
 
 `cryptz -fpr $KEY_FINGERPRINT`
 
+A test cryptz server is available at: https://52.206.154.45:8443. Once you activate your token, you'll be able to use the client to connect using the following command:
+
+`cryptz -host 52.206.154.45 -port 8443 -fpr $KEY_FINGERPRINT`
+
 Available commands
 ------------------
 
