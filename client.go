@@ -142,6 +142,9 @@ func (c *client) readPump(conn *websocket.Conn) {
 
 					case pb.CredentialOperation_SET:
 						fmt.Printf("%s\n", response.Info)
+
+					case pb.CredentialOperation_DELETE:
+						fmt.Printf("%s\n", response.Info)
 					}
 
 				}

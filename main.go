@@ -86,6 +86,16 @@ func repl(cli Client) {
 				}
 				o.Project = int32(pid)
 				o.Key = tokens[3]
+
+			case "delete":
+				o.Command = pb.CredentialOperation_DELETE
+				pid, err := strconv.Atoi(tokens[2])
+				if err != nil {
+					logError(err, "Could not convert project id to integer")
+					continue
+				}
+				o.Project = int32(pid)
+				o.Key = tokens[3]
 			}
 			op.ProjectOrCredentialOp = &pb.Operation_CredentialOp{CredentialOp: o}
 
