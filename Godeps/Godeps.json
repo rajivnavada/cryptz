@@ -1,0 +1,22 @@
+{
+	"ImportPath": "cryptz",
+	"GoVersion": "go1.6",
+	"Deps": [
+		{
+			"ImportPath": "github.com/golang/protobuf/proto",
+			"Rev": "874264fbbb43f4d91e999fecb4b40143ed611400"
+		},
+		{
+			"ImportPath": "github.com/gorilla/websocket",
+			"Rev": "e2e3d8414d0fbae04004f151979f4e27c6747fe7"
+		},
+		{
+			"ImportPath": "github.com/rajivnavada/cryptz_pb",
+			"Rev": "5068386dff80b11d9b3f00b38b08bf2db95748a4"
+		},
+		{
+			"ImportPath": "github.com/rajivnavada/gpgme",
+			"Rev": "4cccb284d801252426dd68043ea70311f62ace72"
+		}
+	]
+}
