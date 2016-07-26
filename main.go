@@ -2,12 +2,9 @@ package main
 
 import (
 	"bufio"
-	"bytes"
-	"crypto/x509"
 	"flag"
 	"fmt"
 	pb "github.com/rajivnavada/cryptz_pb"
-	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -152,23 +149,6 @@ func main() {
 
 	// TODO validate args
 
-	// Read cert.pem and key.pem into a buffer
-	buf := &bytes.Buffer{}
-	for _, fname := range []string{"cert.pem", "key.pem"} {
-		if f, err := os.Open(fname); err != nil {
-			panic(err)
-		} else {
-			io.Copy(buf, f)
-		}
-	}
-
-	// Create a cert pool
-	certs := x509.NewCertPool()
-	if !certs.AppendCertsFromPEM(buf.Bytes()) {
-		println("Could not parse cert from PEM")
-		return
-	}
-
 	fingerprint := strings.Replace(*fpr, " ", "", -1)
 	if fingerprint == "" {
 		println("A key fingerprint is required to run the client")
@@ -179,7 +159,7 @@ func main() {
 	origin := fmt.Sprintf("https://%s:%s", *host, *port)
 
 	// Start a websocket client to receive/send messages
-	cli := NewClient(wssurl, origin, certs)
+	cli := NewClient(wssurl, origin, nil)
 
 	// Run the client
 	go cli.Run()

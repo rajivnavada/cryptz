@@ -212,7 +212,6 @@ func (c *client) Run() {
 		WriteBufferSize: 1024,
 		TLSClientConfig: &tls.Config{
 			InsecureSkipVerify: true,
-			RootCAs:            c.CertPool,
 		},
 	}
 
