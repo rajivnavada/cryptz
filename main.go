@@ -169,7 +169,13 @@ func main() {
 		return
 	}
 
-	wssurl := fmt.Sprintf("wss://%s:%s/ws/%s", *host, *port, *fpr)
+	fingerprint := strings.Replace(*fpr, " ", "", -1)
+	if fingerprint == "" {
+		println("A key fingerprint is required to run the client")
+		return
+	}
+
+	wssurl := fmt.Sprintf("wss://%s:%s/ws/%s", *host, *port, fingerprint)
 	origin := fmt.Sprintf("https://%s:%s", *host, *port)
 
 	// Start a websocket client to receive/send messages
