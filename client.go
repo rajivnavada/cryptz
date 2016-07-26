@@ -123,11 +123,15 @@ func (c *client) readPump(conn *websocket.Conn) {
 						fmt.Printf("%s\n", response.Info)
 
 					case pb.ProjectOperation_LIST:
+						fmt.Printf("%s\n", response.Info)
+						for _, p := range projResponse.Projects {
+							fmt.Printf("%s - %s (id = %d)\n", p.Name, p.Environment, p.Id)
+						}
 
 					case pb.ProjectOperation_LIST_CREDENTIALS:
 						fmt.Printf("%s\n", response.Info)
 						for _, c := range projResponse.Credentials {
-							fmt.Printf("%s (Id = %d)\n", c.Key, c.Id)
+							fmt.Printf("%s (id = %d)\n", c.Key, c.Id)
 						}
 
 					case pb.ProjectOperation_ADD_MEMBER:
