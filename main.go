@@ -5,6 +5,7 @@ import (
 	"flag"
 	"fmt"
 	pb "github.com/rajivnavada/cryptz_pb"
+	"io"
 	"os"
 	"strconv"
 	"strings"
@@ -23,9 +24,14 @@ func repl(cli Client) {
 		fmt.Print("> ")
 		// Scan the line from STDIN
 		line, err := bio.ReadString('\n')
-		if err != nil {
+		if err != nil && err != io.EOF {
 			logError(err, "Error reading line")
 			continue
+		}
+		if err == io.EOF {
+			println("Closing connection. Bye!")
+			cli.Close()
+			return
 		}
 
 		tokens := strings.SplitN(strings.TrimSpace(line), " ", 5)
@@ -39,6 +45,9 @@ func repl(cli Client) {
 
 		// Prepare operation
 		switch tokens[0] {
+		case "":
+			continue
+
 		case "project":
 			o := &pb.ProjectOperation{}
 			switch tokens[1] {
