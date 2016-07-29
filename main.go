@@ -67,6 +67,7 @@ func repl(cli Client) {
 			case "projects":
 				o := &pb.ProjectOperation{}
 				o.Command = pb.ProjectOperation_LIST
+				op.ProjectOp = o
 
 			case "messages":
 				continue
@@ -77,7 +78,7 @@ func repl(cli Client) {
 
 		case "project":
 			o := &pb.ProjectOperation{}
-			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
+			op.ProjectOp = o
 
 			switch tokens[1] {
 			case "create":
@@ -110,13 +111,16 @@ func repl(cli Client) {
 						o.MemberEmail = tokens[4]
 
 					case "credential":
-						o.Command = pb.CredentialOperation_SET
+						o.Command = pb.ProjectOperation_ADD_CREDENTIAL
 						o.Key = tokens[4]
 						o.Value = tokens[5]
 					}
 
 				case "remove":
 					switch tokens[3] {
+					case "":
+						o.Command = pb.ProjectOperation_DELETE
+
 					case "member":
 						o.Command = pb.ProjectOperation_DELETE_MEMBER
 						mid, err := strconv.Atoi(tokens[4])
@@ -127,17 +131,17 @@ func repl(cli Client) {
 						o.MemberId = int32(mid)
 
 					case "credential":
-						o.Command = pb.CredentialOperation_DELETE
+						o.Command = pb.ProjectOperation_DELETE_CREDENTIAL
 						o.Key = tokens[4]
 
 					default:
-						o.Command = pb.ProjectOperation_DELETE
+						continue
 					}
 
 				case "get":
 					switch tokens[3] {
 					case "credential":
-						o.Command = pb.CredentialOperation_GET
+						o.Command = pb.ProjectOperation_GET_CREDENTIAL
 						o.Key = tokens[4]
 
 					default:

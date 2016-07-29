@@ -108,7 +108,6 @@ func (c *client) readPump(conn *websocket.Conn) {
 
 			case pb.Response_SUCCESS:
 				projResponse := response.GetProjectOpResponse()
-				credResponse := response.GetCredentialOpResponse()
 
 				if projResponse != nil {
 
@@ -139,27 +138,23 @@ func (c *client) readPump(conn *websocket.Conn) {
 
 					case pb.ProjectOperation_DELETE_MEMBER:
 						fmt.Printf("%s\n", response.Info)
-					}
 
-				} else if credResponse != nil {
-
-					switch credResponse.Command {
-					case pb.CredentialOperation_GET:
-						cred := credResponse.GetCredential()
+					case pb.ProjectOperation_GET_CREDENTIAL:
+						cred := projResponse.GetCredential()
 						if cred == nil || cred.Cipher == "" {
 							logError(nil, "Server returned an empty response for credential request.")
 						} else {
-							if value, err := gpgme.DecryptMessage(credResponse.Credential.Cipher); err != nil {
+							if value, err := gpgme.DecryptMessage(cred.Cipher); err != nil {
 								logError(err, "Could not decrypt credential cipher")
 							} else {
 								fmt.Printf("%s\n", value)
 							}
 						}
 
-					case pb.CredentialOperation_SET:
+					case pb.ProjectOperation_ADD_CREDENTIAL:
 						fmt.Printf("%s\n", response.Info)
 
-					case pb.CredentialOperation_DELETE:
+					case pb.ProjectOperation_DELETE_CREDENTIAL:
 						fmt.Printf("%s\n", response.Info)
 					}
 
