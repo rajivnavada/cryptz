@@ -34,114 +34,120 @@ func repl(cli Client) {
 			return
 		}
 
-		tokens := strings.SplitN(strings.TrimSpace(line), " ", 5)
-		// Normalize to at least 5 tokens
-		for i := len(tokens); i < 5; i++ {
+		tokens := strings.SplitN(strings.TrimSpace(line), " ", 6)
+		// Normalize to at least 6 tokens
+		for i := len(tokens); i < 6; i++ {
 			tokens = append(tokens, "")
 		}
+
+		// Operations:
+		// list projects
+		// pin project ID
+		// project create NAME ENVIRONMENT
+		// project ID list credentials
+		// project ID list members
+		// project ID add credential CREDKEY
+		// project ID remove credential CREDKEY
+		// project ID add member MEMBEREMAIL
+		// project ID remove member MEMBEREMAIL
+		// project ID remove
+		// unpin
+		// list messages
+		// message ID show
 
 		// Interpret the printed line
 		op := &pb.Operation{}
 
-		// Prepare operation
 		switch tokens[0] {
 		case "":
 			continue
 
-		case "project":
-			o := &pb.ProjectOperation{}
+		case "list":
 			switch tokens[1] {
-			case "list":
+			case "projects":
+				o := &pb.ProjectOperation{}
 				o.Command = pb.ProjectOperation_LIST
 
-			case "list-credentials":
-				o.Command = pb.ProjectOperation_LIST_CREDENTIALS
-				pid, err := strconv.Atoi(tokens[2])
-				if err != nil {
-					logError(err, "Could not convert project id to int")
-					continue
-				}
-				o.ProjectId = int32(pid)
+			case "messages":
+				continue
 
+			default:
+				continue
+			}
+
+		case "project":
+			o := &pb.ProjectOperation{}
+			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
+
+			switch tokens[1] {
 			case "create":
 				o.Command = pb.ProjectOperation_CREATE
 				o.Name = tokens[2]
 				o.Environment = tokens[3]
 
-			case "delete":
-				o.Command = pb.ProjectOperation_DELETE
-				pid, err := strconv.Atoi(tokens[2])
+			default:
+				pid, err := strconv.Atoi(tokens[1])
 				if err != nil {
 					logError(err, "Could not convert project id to int")
 					continue
 				}
 				o.ProjectId = int32(pid)
+
+				switch tokens[2] {
+				case "list":
+					switch tokens[3] {
+					case "credentials":
+						o.Command = pb.ProjectOperation_LIST_CREDENTIALS
+
+					case "members":
+						continue
+					}
+
+				case "add":
+					switch tokens[3] {
+					case "member":
+						o.Command = pb.ProjectOperation_ADD_MEMBER
+						o.MemberEmail = tokens[4]
+
+					case "credential":
+						o.Command = pb.CredentialOperation_SET
+						o.Key = tokens[4]
+						o.Value = tokens[5]
+					}
+
+				case "remove":
+					switch tokens[3] {
+					case "member":
+						o.Command = pb.ProjectOperation_DELETE_MEMBER
+						mid, err := strconv.Atoi(tokens[4])
+						if err != nil {
+							logError(err, "Could not convert member id to int")
+							continue
+						}
+						o.MemberId = int32(mid)
+
+					case "credential":
+						o.Command = pb.CredentialOperation_DELETE
+						o.Key = tokens[4]
+
+					default:
+						o.Command = pb.ProjectOperation_DELETE
+					}
+
+				case "get":
+					switch tokens[3] {
+					case "credential":
+						o.Command = pb.CredentialOperation_GET
+						o.Key = tokens[4]
+
+					default:
+						continue
+					}
+				}
 			}
-			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
 
-		case "member":
-			o := &pb.ProjectOperation{}
-			switch tokens[1] {
-			case "add":
-				o.Command = pb.ProjectOperation_ADD_MEMBER
-				pid, err := strconv.Atoi(tokens[2])
-				if err != nil {
-					logError(err, "Could not convert project id to int")
-					continue
-				}
-				o.ProjectId = int32(pid)
-				o.MemberEmail = tokens[3]
-
-			case "delete":
-				o.Command = pb.ProjectOperation_DELETE_MEMBER
-				mid, err := strconv.Atoi(tokens[2])
-				if err != nil {
-					logError(err, "Could not convert member id to int")
-					continue
-				}
-				o.MemberId = int32(mid)
-			}
-			op.ProjectOrCredentialOp = &pb.Operation_ProjectOp{ProjectOp: o}
-
-		case "credential":
-			o := &pb.CredentialOperation{}
-			switch tokens[1] {
-			case "set":
-				o.Command = pb.CredentialOperation_SET
-				pid, err := strconv.Atoi(tokens[2])
-				if err != nil {
-					logError(err, "Could not convert project id to integer")
-					continue
-				}
-				o.Project = int32(pid)
-				o.Key = tokens[3]
-				o.Value = tokens[4]
-
-			case "get":
-				o.Command = pb.CredentialOperation_GET
-				pid, err := strconv.Atoi(tokens[2])
-				if err != nil {
-					logError(err, "Could not convert project id to integer")
-					continue
-				}
-				o.Project = int32(pid)
-				o.Key = tokens[3]
-
-			case "delete":
-				o.Command = pb.CredentialOperation_DELETE
-				pid, err := strconv.Atoi(tokens[2])
-				if err != nil {
-					logError(err, "Could not convert project id to integer")
-					continue
-				}
-				o.Project = int32(pid)
-				o.Key = tokens[3]
-			}
-			op.ProjectOrCredentialOp = &pb.Operation_CredentialOp{CredentialOp: o}
-
-		case "quit":
-			cli.Close()
-			return
+		case "message":
+			continue
 		}
 
 		// Write to client
