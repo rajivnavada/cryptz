@@ -18,6 +18,12 @@ var (
 	fpr   = flag.String("fpr", "", "Fingerprint of key to use")
 )
 
+func handleError(err error) {
+	if err != nil {
+		logError(err, "Could not create command")
+	}
+}
+
 func repl(cli Client) {
 	bio := bufio.NewReader(os.Stdin)
 	for {
@@ -56,7 +62,7 @@ func repl(cli Client) {
 		// message ID show
 
 		// Interpret the printed line
-		op := &pb.Operation{}
+		var op *pb.Operation
 
 		switch tokens[0] {
 		case "":
@@ -65,9 +71,7 @@ func repl(cli Client) {
 		case "list":
 			switch tokens[1] {
 			case "projects":
-				o := &pb.ProjectOperation{}
-				o.Command = pb.ProjectOperation_LIST
-				op.ProjectOp = o
+				op = NewProjectListOperation()
 
 			case "messages":
 				continue
@@ -77,28 +81,25 @@ func repl(cli Client) {
 			}
 
 		case "project":
-			o := &pb.ProjectOperation{}
-			op.ProjectOp = o
-
 			switch tokens[1] {
 			case "create":
-				o.Command = pb.ProjectOperation_CREATE
-				o.Name = tokens[2]
-				o.Environment = tokens[3]
+				op, err = NewProjectCreateOperation(tokens[3], tokens[4])
+				handleError(err)
 
 			default:
 				pid, err := strconv.Atoi(tokens[1])
 				if err != nil {
-					logError(err, "Could not convert project id to int")
+					handleError(err)
 					continue
 				}
-				o.ProjectId = int32(pid)
+				p := Project(pid)
 
 				switch tokens[2] {
 				case "list":
 					switch tokens[3] {
 					case "credentials":
-						o.Command = pb.ProjectOperation_LIST_CREDENTIALS
+						op, err = p.NewListCredentialsOperation()
+						handleError(err)
 
 					case "members":
 						continue
@@ -107,32 +108,32 @@ func repl(cli Client) {
 				case "add":
 					switch tokens[3] {
 					case "member":
-						o.Command = pb.ProjectOperation_ADD_MEMBER
-						o.MemberEmail = tokens[4]
+						op, err = p.NewAddMemberOperation(tokens[4])
+						handleError(err)
 
 					case "credential":
-						o.Command = pb.ProjectOperation_ADD_CREDENTIAL
-						o.Key = tokens[4]
-						o.Value = tokens[5]
+						op, err = p.NewAddCredentialOperation(tokens[4], tokens[5])
+						handleError(err)
 					}
 
 				case "remove":
 					switch tokens[3] {
 					case "":
-						o.Command = pb.ProjectOperation_DELETE
+						op, err = p.NewDeleteOperation()
+						handleError(err)
 
 					case "member":
-						o.Command = pb.ProjectOperation_DELETE_MEMBER
 						mid, err := strconv.Atoi(tokens[4])
 						if err != nil {
-							logError(err, "Could not convert member id to int")
+							handleError(err)
 							continue
 						}
-						o.MemberId = int32(mid)
+						op, err = p.NewDeleteMemberOperation(mid)
+						handleError(err)
 
 					case "credential":
-						o.Command = pb.ProjectOperation_DELETE_CREDENTIAL
-						o.Key = tokens[4]
+						op, err = p.NewDeleteCredentialOperation(tokens[4])
+						handleError(err)
 
 					default:
 						continue
@@ -141,8 +142,8 @@ func repl(cli Client) {
 				case "get":
 					switch tokens[3] {
 					case "credential":
-						o.Command = pb.ProjectOperation_GET_CREDENTIAL
-						o.Key = tokens[4]
+						op, err = p.NewGetCredentialOperation(tokens[4])
+						handleError(err)
 
 					default:
 						continue
@@ -151,6 +152,13 @@ func repl(cli Client) {
 			}
 
 		case "message":
+			continue
+
+		default:
+			continue
+		}
+
+		if err != nil || op == nil {
 			continue
 		}
 
