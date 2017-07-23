@@ -1,0 +1,31 @@
+{
+	"comment": "",
+	"ignore": "test",
+	"package": [
+		{
+			"checksumSHA1": "yqF125xVSkmfLpIVGrLlfE05IUk=",
+			"path": "github.com/golang/protobuf/proto",
+			"revision": "0a4f71a498b7c4812f64969510bcb4eca251e33a",
+			"revisionTime": "2017-07-12T04:22:13Z"
+		},
+		{
+			"checksumSHA1": "8KawKW6FJguwWz5cPvMg/ChmepE=",
+			"path": "github.com/gorilla/websocket",
+			"revision": "a69d9f6de432e2c6b296a947d8a5ee88f68522cf",
+			"revisionTime": "2017-07-18T20:23:41Z"
+		},
+		{
+			"checksumSHA1": "OlsKz42enGD6VtXlA+5SwB3Psiw=",
+			"path": "github.com/rajivnavada/cryptz_pb",
+			"revision": "677cb77f766ca98a6560dfc63318af46a62f4b75",
+			"revisionTime": "2017-07-19T22:44:47Z"
+		},
+		{
+			"checksumSHA1": "xdYuMoexhB91AOvJEcZTluEOw04=",
+			"path": "github.com/rajivnavada/gpgme",
+			"revision": "b6b4ed731b5a1cd54ba23e61d28f4076d297a0c7",
+			"revisionTime": "2016-07-25T21:55:12Z"
+		}
+	],
+	"rootPath": "github.com/rajivnavada/cryptz"
+}

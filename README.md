@@ -7,10 +7,6 @@ In order to use the client, you will need to provide the fingerprint of an activ
 
 `cryptz -fpr $KEY_FINGERPRINT`
 
-A test cryptz server is available at: [https://52.206.154.45:8443]. Once you activate your public key, you'll be able to use the client to connect using the following command:
-
-`cryptz -host 52.206.154.45 -port 8443 -fpr $KEY_FINGERPRINT`
-
 Available commands
 ------------------
 
